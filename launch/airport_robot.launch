@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find airport_robot_gazebo)/worlds/airport_robot.world"/>
+  </include>
+  
+  <include file="$(find airport_robot_gazebo)/launch/spawn_robot.launch">
+		<arg name="x" value="0.0"/>
+		<arg name="y" value="0.0"/>
+		<arg name="z" value="0.0"/>
+  </include>
+  
+  <include file="$(find airport_robot_gazebo)/launch/control.launch">
+  </include>
+  
+  <arg name="rviz" default="true"/>
+	<node if="$(arg rviz)" pkg="rviz" type="rviz" name="$(anon rviz)" respawn="false" output="screen" args="-d $(find airport_robot_gazebo)/rviz/airport_robot.rviz" />
+
+</launch>
