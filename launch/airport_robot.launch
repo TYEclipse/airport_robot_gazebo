@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
+  <arg name="rviz" default="true"/>
+
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find airport_robot_gazebo)/worlds/airport_robot.world"/>
   </include>
@@ -14,7 +16,8 @@
   <include file="$(find airport_robot_gazebo)/launch/control.launch">
   </include>
   
-  <arg name="rviz" default="true"/>
 	<node if="$(arg rviz)" pkg="rviz" type="rviz" name="$(anon rviz)" respawn="false" output="screen" args="-d $(find airport_robot_gazebo)/rviz/airport_robot.rviz" />
+
+  <node pkg="rqt_robot_steering" type="rqt_robot_steering" name="rqt_robot_steering"  respawn="false" output="screen" />
 
 </launch>

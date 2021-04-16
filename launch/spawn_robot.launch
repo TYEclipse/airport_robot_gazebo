@@ -10,7 +10,7 @@
 	<arg name="robot_name" default="airport_robot"/>
 
  	<arg name="gpu" default="false"/>
-	<arg name="organize_cloud" default="true"/>
+	<arg name="organize_cloud" default="false"/>
 
 	<!-- <param name="robot_description" command="$(arg urdf_robot_file)"/> -->
 	<param name="robot_description" command="$(find xacro)/xacro '$(arg urdf_robot_file)' robot_name:='$(arg robot_name)' organize_cloud:=$(arg organize_cloud) gpu:=$(arg gpu)" />

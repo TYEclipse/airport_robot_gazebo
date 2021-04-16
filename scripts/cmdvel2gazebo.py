@@ -10,7 +10,7 @@ class CmdVel2Gazebo:
     def __init__(self):
         rospy.init_node('cmdvel2gazebo', anonymous=True)
         
-        rospy.Subscriber('/airport_robot/cmd_vel', Twist, self.callback, queue_size=1)
+        rospy.Subscriber('/cmd_vel', Twist, self.callback, queue_size=1)
 
         self.pub_steerL = rospy.Publisher('/airport_robot/front_left_steering_position_controller/command', Float64, queue_size=1)
         self.pub_steerR = rospy.Publisher('/airport_robot/front_right_steering_position_controller/command', Float64, queue_size=1)
