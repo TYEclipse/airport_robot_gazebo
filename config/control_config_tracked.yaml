@@ -1,0 +1,26 @@
+airport_robot:
+# controls the rear two tires based on individual motors
+  # Publish all joint states -----------------------------------
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50
+
+  rear_right_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: rear_right_wheel_joint
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+
+  rear_left_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: rear_left_wheel_joint
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+
+  front_right_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: front_right_wheel_joint
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+
+  front_left_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: front_left_wheel_joint
+    pid: {p: 100.0, i: 0.01, d: 10.0}

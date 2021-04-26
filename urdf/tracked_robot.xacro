@@ -1,0 +1,510 @@
+<?xml version="1.0" ?>
+<robot name="$(arg robot_name)"
+    xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:property name="PI" value="3.1415926835897931"/>
+    <xacro:property name="material_density" value="10.0"/>
+    <!-- base -->
+    <xacro:property name="base_length" value="1"/>
+    <xacro:property name="base_width" value="0.6"/>
+    <xacro:property name="base_height" value="0.4"/>
+    <xacro:property name="base_collision_height" value="0.4"/>
+    <xacro:property name="base_mass" value="${material_density*base_length*base_width*base_height}"/>
+    <xacro:property name="base_mass_ixx" value="${(base_width*base_width+base_height*base_height)*base_mass/12.0}"/>
+    <xacro:property name="base_mass_iyy" value="${(base_length*base_length+base_height*base_height)*base_mass/12.0}"/>
+    <xacro:property name="base_mass_izz" value="${(base_width*base_width+base_width*base_width)*base_mass/12.0}"/>
+    <!-- rear tyre -->
+    <xacro:property name="rear_tyre_x" value="${base_length/2.0}"/>
+    <xacro:property name="rear_tyre_y" value="${base_width/2.0}"/>
+    <xacro:property name="rear_tyre_r" value="${base_collision_height/2.0}"/>
+    <xacro:property name="rear_tyre_length" value="0.1"/>
+    <xacro:property name="rear_tyre_mass" value="20"/>
+    <xacro:property name="rear_tyre_mass_ixx" value="0.5"/>
+    <xacro:property name="rear_tyre_mass_iyy" value="0.9"/>
+    <xacro:property name="rear_tyre_mass_izz" value="0.5"/>
+    <!-- front tyre -->
+    <xacro:property name="front_tyre_x" value="${base_length/2.0}"/>
+    <xacro:property name="front_tyre_y" value="${base_width/2.0}"/>
+    <xacro:property name="front_tyre_r" value="${base_collision_height/2.0}"/>
+    <xacro:property name="front_tyre_length" value="0.1"/>
+    <xacro:property name="front_tyre_mass" value="20"/>
+    <xacro:property name="front_tyre_mass_ixx" value="0.5"/>
+    <xacro:property name="front_tyre_mass_iyy" value="0.9"/>
+    <xacro:property name="front_tyre_mass_izz" value="0.5"/>
+    <!-- steering -->
+    <xacro:property name="str_angle" value="0.6"/>
+    <xacro:property name="str_length" value="0.01"/>
+    <xacro:property name="str_radius" value="0.1"/>
+    <xacro:property name="str_mass" value="5"/>
+    <xacro:property name="str_mass_ixx" value="0.012"/>
+    <xacro:property name="str_mass_iyy" value="0.025"/>
+    <xacro:property name="str_mass_izz" value="0.012"/>
+    <!--Car Body-->
+    <link name="base_link">
+        <inertial>
+            <origin xyz="0 0 ${base_collision_height}" rpy="0 0 0"/>
+            <mass value="${base_mass}"/>
+            <inertia ixx="${base_mass_ixx}" ixy="0" ixz="0" iyy="${base_mass_iyy}" iyz="0" izz="${base_mass_izz}" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 ${base_collision_height}" rpy="0 0 0" />
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}" />
+            </geometry>
+            <material name="Yellow">
+                <color rgba="1.0 1.0 0.0 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 ${base_collision_height}" rpy="0 0 0"/>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!--velodyne VLP-16-->
+    <xacro:arg name="gpu" default="false"/>
+    <xacro:property name="gpu" value="$(arg gpu)" />
+    <xacro:arg name="organize_cloud" default="false"/>
+    <xacro:property name="organize_cloud" value="$(arg organize_cloud)" />
+    <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
+    <xacro:VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" organize_cloud="${organize_cloud}" hz="10" samples="440" gpu="${gpu}">
+        <origin xyz="0 0 0.8" rpy="0 0 0" />
+    </xacro:VLP-16>
+
+    <!--IMU sensor-->
+    <joint name="imu_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="imu_link"/>
+        <origin xyz="0 0 ${base_collision_height}" rpy="0 0 0"/>
+    </joint>
+    <link name="imu_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+        </visual>
+    </link>
+    <gazebo reference="imu_link">
+        <gravity>true</gravity>
+        <sensor name="imu_sensor" type="imu">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <visualize>true</visualize>
+            <topic>__default_topic__</topic>
+            <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+                <topicName>/imu</topicName>
+                <bodyName>imu_link</bodyName>
+                <updateRateHZ>2.0</updateRateHZ>
+                <gaussianNoise>0.0</gaussianNoise>
+                <xyzOffset>0 0 0</xyzOffset>
+                <rpyOffset>0 0 0</rpyOffset>
+                <frameName>imu_link</frameName>
+            </plugin>
+            <pose>0 0 0 0 0 0</pose>
+        </sensor>
+    </gazebo>
+
+    <!--Camera1 sensor-->
+    <joint name="camera1_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz="${base_length/2-0.01} 0 ${base_height/2+base_collision_height+0.01}" rpy="0 0 0"/>
+        <parent link="base_link"/>
+        <child link="camera1_link"/>
+    </joint>
+    <link name="camera1_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.02 0.02 0.02"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.02 0.02 0.02"/>
+            </geometry>
+            <material name="red" color="1 0 0 1"/>
+        </visual>
+    </link>
+    <gazebo reference="camera1_link">
+        <sensor type="camera" name="camera1">
+            <update_rate>30.0</update_rate>
+            <camera name="head">
+                <horizontal_fov>1.74532925</horizontal_fov>
+                <image>
+                    <width>800</width>
+                    <height>800</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <!-- Noise is sampled independently per pixel on each frame.
+               That pixel's noise value is added to each of its color
+               channels, which at that point lie in the range [0,1]. -->
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>0.0</updateRate>
+                <cameraName>$(arg robot_name)/camera1</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>camera_link</frameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>0.0</distortionK1>
+                <distortionK2>0.0</distortionK2>
+                <distortionK3>0.0</distortionK3>
+                <distortionT1>0.0</distortionT1>
+                <distortionT2>0.0</distortionT2>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    <!--Camera2 sensor-->
+    <joint name="camera2_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz="0 ${base_width/2-0.01} ${base_height/2+base_collision_height+0.01}" rpy="0 0 1.570796"/>
+        <parent link="base_link"/>
+        <child link="camera2_link"/>
+    </joint>
+    <link name="camera2_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.02 0.02 0.02"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.02 0.02 0.02"/>
+            </geometry>
+            <material name="red" color="1 0 0 1"/>
+        </visual>
+    </link>
+    <gazebo reference="camera2_link">
+        <sensor type="camera" name="camera2">
+            <update_rate>30.0</update_rate>
+            <camera name="head">
+                <horizontal_fov>1.74532925</horizontal_fov>
+                <image>
+                    <width>800</width>
+                    <height>800</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <!-- Noise is sampled independently per pixel on each frame.
+               That pixel's noise value is added to each of its color
+               channels, which at that point lie in the range [0,1]. -->
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>0.0</updateRate>
+                <cameraName>$(arg robot_name)/camera2</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>camera_link</frameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>0.0</distortionK1>
+                <distortionK2>0.0</distortionK2>
+                <distortionK3>0.0</distortionK3>
+                <distortionT1>0.0</distortionT1>
+                <distortionT2>0.0</distortionT2>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    <!--Camera3 sensor-->
+    <joint name="camera3_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz="0 -${base_width/2-0.01} ${base_height/2+base_collision_height+0.01}" rpy="0 0 -1.570796"/>
+        <parent link="base_link"/>
+        <child link="camera3_link"/>
+    </joint>
+    <link name="camera3_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.02 0.02 0.02"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.02 0.02 0.02"/>
+            </geometry>
+            <material name="red" color="1 0 0 1"/>
+        </visual>
+    </link>
+    <gazebo reference="camera3_link">
+        <sensor type="camera" name="camera3">
+            <update_rate>30.0</update_rate>
+            <camera name="head">
+                <horizontal_fov>1.74532925</horizontal_fov>
+                <image>
+                    <width>800</width>
+                    <height>800</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <!-- Noise is sampled independently per pixel on each frame.
+               That pixel's noise value is added to each of its color
+               channels, which at that point lie in the range [0,1]. -->
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>0.0</updateRate>
+                <cameraName>$(arg robot_name)/camera3</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>camera_link</frameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>0.0</distortionK1>
+                <distortionK2>0.0</distortionK2>
+                <distortionK3>0.0</distortionK3>
+                <distortionT1>0.0</distortionT1>
+                <distortionT2>0.0</distortionT2>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    <!--Rear Right Wheel-->
+    <joint name="rear_right_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="rear_right_wheel_link"/>
+        <origin xyz="${-rear_tyre_x} ${-rear_tyre_y} ${rear_tyre_r}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.1"/>
+        <limit effort="1000000" velocity="10000" />
+        <joint_properties damping="0.0" friction="0.0" />
+    </joint>
+    <link name="rear_right_wheel_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder length="${rear_tyre_length}" radius="${rear_tyre_r}"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder length="${rear_tyre_length}" radius="${rear_tyre_r}"/>
+            </geometry>
+        </visual>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${rear_tyre_mass}"/>
+            <inertia ixx="${rear_tyre_mass_ixx}" ixy="0.000000" ixz="0.000000" iyy="${rear_tyre_mass_iyy}" iyz="0.000000" izz="${rear_tyre_mass_izz}"/>
+        </inertial>
+    </link>
+
+    <!--Rear Left Wheel-->
+    <joint name="rear_left_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="rear_left_wheel_link"/>
+        <origin xyz="${-rear_tyre_x} ${rear_tyre_y} ${rear_tyre_r}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.1"/>
+        <limit effort="1000000" velocity="10000" />
+        <joint_properties damping="0.0" friction="0.0" />
+    </joint>
+    <link name="rear_left_wheel_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder length="${rear_tyre_length}" radius="${rear_tyre_r}"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder length="${rear_tyre_length}" radius="${rear_tyre_r}"/>
+            </geometry>
+        </visual>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${rear_tyre_mass}"/>
+            <inertia ixx="${rear_tyre_mass_ixx}" ixy="0.000000" ixz="0.000000" iyy="${rear_tyre_mass_iyy}" iyz="0.000000" izz="${rear_tyre_mass_izz}"/>
+        </inertial>
+    </link>
+
+    <!--Front Right Wheel-->
+    <joint name="front_right_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="front_right_wheel_link"/>
+        <origin xyz="${front_tyre_x} ${-front_tyre_y} ${front_tyre_r}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.1"/>
+        <limit effort="1000000" velocity="10000" />
+        <joint_properties damping="0.0" friction="0.0" />
+
+    </joint>
+    <link name="front_right_wheel_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder length="${front_tyre_length}" radius="${front_tyre_r}"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder length="${front_tyre_length}" radius="${front_tyre_r}"/>
+            </geometry>
+        </visual>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${front_tyre_mass}"/>
+            <inertia ixx="${front_tyre_mass_ixx}" ixy="0.000000" ixz="0.000000" iyy="${front_tyre_mass_iyy}" iyz="0.000000" izz="${front_tyre_mass_izz}"/>
+        </inertial>
+    </link>
+
+    <!--Front Left Wheel-->
+    <joint name="front_left_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="front_left_wheel_link"/>
+        <origin xyz="${front_tyre_x} ${front_tyre_y} ${front_tyre_r}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="0.1"/>
+        <limit effort="1000000" velocity="10000" />
+        <joint_properties damping="0.0" friction="0.0" />
+
+    </joint>
+    <link name="front_left_wheel_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder length="${front_tyre_length}" radius="${front_tyre_r}"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder length="${front_tyre_length}" radius="${front_tyre_r}"/>
+            </geometry>
+        </visual>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${front_tyre_mass}"/>
+            <inertia ixx="${front_tyre_mass_ixx}" ixy="0.000000" ixz="0.000000" iyy="${front_tyre_mass_iyy}" iyz="0.000000" izz="${front_tyre_mass_izz}"/>
+        </inertial>
+    </link>
+
+    <!-- motors and transmissions for the two rear wheels -->
+    <transmission name="tran1">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="rear_right_wheel_joint">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="motor1">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="tran2">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="rear_left_wheel_joint">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="motor2">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+
+    <!-- EPS and transmissions for the front steering -->
+    <transmission name="tran3">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="front_right_wheel_joint">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="motor3">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="tran4">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="front_left_wheel_joint">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="motor4">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+
+    <!-- Friction Parametres -->
+    <gazebo reference="rear_right_wheel_link">
+        <mu1>10000000</mu1>
+        <mu2>10000000</mu2>
+        <kp>10000000</kp>
+        <kd>1</kd>
+    </gazebo>
+    <gazebo reference="rear_left_wheel_link">
+        <mu1>10000000</mu1>
+        <mu2>10000000</mu2>
+        <kp>10000000</kp>
+        <kd>1</kd>
+    </gazebo>
+    <gazebo reference="front_right_wheel_link">
+        <mu1>10000000</mu1>
+        <mu2>10000000</mu2>
+        <kp>10000000</kp>
+        <kd>1</kd>
+    </gazebo>
+    <gazebo reference="front_left_wheel_link">
+        <mu1>10000000</mu1>
+        <mu2>10000000</mu2>
+        <kp>10000000</kp>
+        <kd>1</kd>
+    </gazebo>
+
+    <!-- Gazebo Plugins -->
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <robotNamespace>/$(arg robot_name)</robotNamespace>
+            <robotParam>robot_description</robotParam>
+            <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+        </plugin>
+    </gazebo>
+    <gazebo>
+        <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
+            <jointName>rear_left_wheel_joint, rear_right_wheel_joint, front_right_wheel_joint, front_left_wheel_joint</jointName>
+            <updateRate>50.0</updateRate>
+            <robotNamespace>/$(arg robot_name)</robotNamespace>
+            <alwaysOn>true</alwaysOn>
+        </plugin>
+    </gazebo>
+
+</robot>
