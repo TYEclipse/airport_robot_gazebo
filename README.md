@@ -16,6 +16,8 @@
 
 `roslaunch airport_robot_gazebo airport_robot.launch`
 
+`rosrun key_teleop key_teleop.py /key_vel:=/cmd_vel _forward_rate:=2.0 _backward_rate:=2.0 _rotation_rate:=1.0`
+
 ## 主要话题
 
 1. 控制器:&ensp;"/cmd_vel"

@@ -1,20 +1,20 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <launch>
-  
+
+  <arg name="robot_type" default="tracked"/>
+  <!-- robot_type : "wheeled" "tracked"-->
   <arg name="robot_name" default="airport_robot"/>
   <!-- Load joint controller configurations from YAML file to parameter server -->
-  <rosparam file="$(find airport_robot_gazebo)/config/control_config.yaml" command="load"/>
+  <rosparam file="$(find airport_robot_gazebo)/config/control_config_$(arg robot_type).yaml" command="load"/>
 
   <!-- load controllers -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-        output="screen" ns="/$(arg robot_name)" args="joint_state_controller rear_right_velocity_controller rear_left_velocity_controller front_right_steering_position_controller front_left_steering_position_controller"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" ns="/$(arg robot_name)" args="joint_state_controller rear_right_velocity_controller rear_left_velocity_controller front_right_velocity_controller front_left_velocity_controller"/>
 
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
-      respawn="true" output="screen">
-      <remap from="/joint_states" to="/$(arg robot_name)/joint_states" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">
+    <remap from="/joint_states" to="/$(arg robot_name)/joint_states" />
   </node>
 
-  <node name="cmdvel2gazebo" pkg="airport_robot_gazebo" type="cmdvel2gazebo.py" respawn="true" output="screen"/>
+  <node name="cmdvel2gazebo" pkg="airport_robot_gazebo" type="cmdvel2gazebo_$(arg robot_type).py" respawn="true" output="screen"/>
 
 </launch>
