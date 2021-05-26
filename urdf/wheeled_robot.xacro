@@ -13,7 +13,7 @@
   <xacro:property name="base_mass_iyy" value="${(base_length*base_length+base_height*base_height)*base_mass/12.0}"/>
   <xacro:property name="base_mass_izz" value="${(base_width*base_width+base_width*base_width)*base_mass/12.0}"/>
   <!-- rear tyre -->
-  <xacro:property name="rear_tyre_x" value="0.5"/>
+  <xacro:property name="rear_tyre_x" value="${base_length/2.0}"/>
   <xacro:property name="rear_tyre_y" value="${base_width/2.0}"/>
   <xacro:property name="rear_tyre_r" value="${base_collision_height/2.0}"/>
   <xacro:property name="rear_tyre_length" value="0.1"/>
@@ -22,7 +22,7 @@
   <xacro:property name="rear_tyre_mass_iyy" value="0.9"/>
   <xacro:property name="rear_tyre_mass_izz" value="0.5"/>
   <!-- front tyre -->
-  <xacro:property name="front_tyre_x" value="0.5"/>
+  <xacro:property name="front_tyre_x" value="${base_length/2.0}"/>
   <xacro:property name="front_tyre_y" value="${base_width/2.0}"/>
   <xacro:property name="front_tyre_r" value="${base_collision_height/2.0}"/>
   <xacro:property name="front_tyre_length" value="0.1"/>
@@ -69,7 +69,7 @@
   <xacro:property name="organize_cloud" value="$(arg organize_cloud)" />
   <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
   <xacro:VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" organize_cloud="${organize_cloud}" hz="10" samples="440" gpu="${gpu}">
-    <origin xyz="0 0 0.8" rpy="0 0 0" />
+    <origin xyz="${base_length/2.0} 0 0.64" rpy="0 ${PI/12} 0" />
   </xacro:VLP-16>
 
   <!--IMU sensor-->
@@ -98,7 +98,7 @@
     <gravity>true</gravity>
     <sensor name="imu_sensor" type="imu">
       <always_on>true</always_on>
-      <update_rate>100</update_rate>
+      <update_rate>200</update_rate>
       <visualize>true</visualize>
       <topic>__default_topic__</topic>
       <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">

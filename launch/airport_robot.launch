@@ -10,6 +10,10 @@
     <arg name="world_name" value="$(find airport_robot_gazebo)/worlds/airport_with_plane.world"/>
   </include>
 
+  <include file="$(find airport_robot_gazebo)/launch/control.launch">
+    <arg name="robot_type" value="$(arg robot_type)"/>
+  </include>
+
   <include file="$(find airport_robot_gazebo)/launch/spawn_robot.launch">
     <arg name="x" value="-10.0"/>
     <arg name="y" value="-10.0"/>
@@ -17,12 +21,11 @@
     <arg name="robot_type" value="$(arg robot_type)"/>
   </include>
 
-  <include file="$(find airport_robot_gazebo)/launch/control.launch">
-    <arg name="robot_type" value="$(arg robot_type)"/>
-  </include>
 
   <node if="$(arg rviz)" pkg="rviz" type="rviz" name="$(anon rviz)" respawn="false" output="screen" args="-d $(find airport_robot_gazebo)/rviz/airport_robot.rviz" />
 
   <!-- <node pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" name="teleop_twist_keyboard" respawn="false" output="screen" /> -->
+  <node pkg="rqt_robot_steering" type="rqt_robot_steering" name="rqt_robot_steering" respawn="false" output="screen" />
+
 
 </launch>
