@@ -5,11 +5,22 @@
 	<arg name="z" default="0.0"/>
 	<arg name="robot_type" default="tracked"/>
 	<!-- robot_type : "wheeled" "tracked"-->
-	<arg name="urdf_robot_file" default="$(find airport_robot_gazebo)/urdf/$(arg robot_type)_robot.xacro"/>
 	<arg name="robot_name" default="airport_robot"/>
 	<arg name="gpu" default="false"/>
 	<arg name="organize_cloud" default="false"/>
-	<!-- <param name="robot_description" command="$(arg urdf_robot_file)"/> -->
+
+	<!-- <arg name="urdf_robot_file" default="$(find airport_robot_gazebo)/urdf/$(arg robot_type)_robot.urdf"/>
+	<param name="robot_description" textfile="$(find airport_robot_gazebo)/urdf/$(arg robot_type)_robot.urdf"/>
+	<node name="spawn_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x $(arg x) -y $(arg y) -z $(arg z) -model $(arg robot_name) -file $(find airport_robot_gazebo)/urdf/$(arg robot_type)_robot.urdf"/> -->
+
+	<!-- Load the urdf into the parameter server. -->
+
+	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" args="_publish_frequency:= 10">
+		<remap from="/joint_states" to="/$(arg robot_name)/joint_states" />
+	</node>
+
+	<arg name="urdf_robot_file" default="$(find airport_robot_gazebo)/urdf/$(arg robot_type)_robot.xacro"/>
 	<param name="robot_description" command="$(find xacro)/xacro '$(arg urdf_robot_file)' robot_name:='$(arg robot_name)' organize_cloud:=$(arg organize_cloud) gpu:=$(arg gpu)" />
 	<node name="spawn_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x $(arg x) -y $(arg y) -z $(arg z) -model $(arg robot_name) -param robot_description"/>
+
 </launch>
