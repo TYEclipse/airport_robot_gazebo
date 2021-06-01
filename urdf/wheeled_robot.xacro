@@ -13,7 +13,7 @@
   <xacro:property name="base_mass_iyy" value="${(base_length*base_length+base_height*base_height)*base_mass/12.0}"/>
   <xacro:property name="base_mass_izz" value="${(base_width*base_width+base_width*base_width)*base_mass/12.0}"/>
   <!-- rear tyre -->
-  <xacro:property name="rear_tyre_x" value="0.5"/>
+  <xacro:property name="rear_tyre_x" value="${base_length/2.0}"/>
   <xacro:property name="rear_tyre_y" value="${base_width/2.0}"/>
   <xacro:property name="rear_tyre_r" value="${base_collision_height/2.0}"/>
   <xacro:property name="rear_tyre_length" value="0.1"/>
@@ -22,7 +22,7 @@
   <xacro:property name="rear_tyre_mass_iyy" value="0.9"/>
   <xacro:property name="rear_tyre_mass_izz" value="0.5"/>
   <!-- front tyre -->
-  <xacro:property name="front_tyre_x" value="0.5"/>
+  <xacro:property name="front_tyre_x" value="${base_length/2.0}"/>
   <xacro:property name="front_tyre_y" value="${base_width/2.0}"/>
   <xacro:property name="front_tyre_r" value="${base_collision_height/2.0}"/>
   <xacro:property name="front_tyre_length" value="0.1"/>
@@ -38,6 +38,16 @@
   <xacro:property name="str_mass_ixx" value="0.012"/>
   <xacro:property name="str_mass_iyy" value="0.025"/>
   <xacro:property name="str_mass_izz" value="0.012"/>
+
+  <!-- To fix the problem -->
+  <!-- The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF. -->
+  <link name="dummy">
+  </link>
+  <joint name="dummy_joint" type="fixed">
+    <parent link="dummy"/>
+    <child link="base_link"/>
+  </joint>
+
   <!--Car Body-->
   <link name="base_link">
     <inertial>
@@ -68,47 +78,45 @@
   <xacro:arg name="organize_cloud" default="false"/>
   <xacro:property name="organize_cloud" value="$(arg organize_cloud)" />
   <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
-  <xacro:VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" organize_cloud="${organize_cloud}" hz="10" samples="440" gpu="${gpu}">
+  <xacro:VLP-16 parent="base_link" name="velodyne" topic="/points_raw" organize_cloud="${organize_cloud}" hz="11" samples="440" gpu="${gpu}">
+    <!-- <origin xyz="${base_length/2.0-0.08} 0 0.72" rpy="0 ${PI/12} 0" /> -->
     <origin xyz="0 0 0.8" rpy="0 0 0" />
   </xacro:VLP-16>
 
   <!--IMU sensor-->
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 ${base_collision_height}" rpy="0 0 0"/>
+  </joint>
   <link name="imu_link">
     <collision>
-      <origin xyz="0 0 0.4" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <box size="0.1 0.1 0.1"/>
       </geometry>
     </collision>
     <visual>
-      <origin xyz="0 0 0.4" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <box size="0.1 0.1 0.1"/>
       </geometry>
     </visual>
   </link>
-
-  <joint name="imu_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="imu_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-  </joint>
-
   <gazebo reference="imu_link">
     <gravity>true</gravity>
     <sensor name="imu_sensor" type="imu">
       <always_on>true</always_on>
-      <update_rate>100</update_rate>
+      <update_rate>200.0</update_rate>
       <visualize>true</visualize>
       <topic>__default_topic__</topic>
       <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
         <topicName>/imu</topicName>
-        <bodyName>imu_link</bodyName>
-        <updateRateHZ>2.0</updateRateHZ>
+        <frameName>imu_link</frameName>
+        <updateRateHZ>200.0</updateRateHZ>
         <gaussianNoise>0.0</gaussianNoise>
         <xyzOffset>0 0 0</xyzOffset>
         <rpyOffset>0 0 0</rpyOffset>
-        <frameName>imu_link</frameName>
       </plugin>
       <pose>0 0 0 0 0 0</pose>
     </sensor>
@@ -441,6 +449,7 @@
     <dynamics damping="0.1"/>
     <limit effort="1000000" velocity="10000" />
     <joint_properties damping="0.0" friction="0.0" />
+
   </joint>
   <link name="front_left_wheel_link">
     <collision>
@@ -460,7 +469,9 @@
       <mass value="${front_tyre_mass}"/>
       <inertia ixx="${front_tyre_mass_ixx}" ixy="0.000000" ixz="0.000000" iyy="${front_tyre_mass_iyy}" iyz="0.000000" izz="${front_tyre_mass_izz}"/>
     </inertial>
-  </link>  <!-- motors and transmissions for the two rear wheels -->
+  </link>
+
+  <!-- motors and transmissions for the two rear wheels -->
   <transmission name="tran1">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="rear_right_wheel_joint">
@@ -480,7 +491,9 @@
       <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
-  </transmission>  <!-- EPS and transmissions for the front steering -->
+  </transmission>
+
+  <!-- EPS and transmissions for the front steering -->
   <transmission name="tran3">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="front_right_steering_joint">
@@ -502,7 +515,9 @@
       <mechanicalReduction>1</mechanicalReduction>
       <motorTorqueConstant>1000000</motorTorqueConstant>
     </actuator>
-  </transmission>  <!-- Friction Parametres -->
+  </transmission>
+
+  <!-- Friction Parametres -->
   <gazebo reference="rear_right_wheel_link">
     <mu1>10000000</mu1>
     <mu2>10000000</mu2>
@@ -526,7 +541,9 @@
     <mu2>10000000</mu2>
     <kp>10000000</kp>
     <kd>1</kd>
-  </gazebo>  <!-- Gazebo Plugins -->
+  </gazebo>
+
+  <!-- Gazebo Plugins -->
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
       <robotNamespace>/$(arg robot_name)</robotNamespace>

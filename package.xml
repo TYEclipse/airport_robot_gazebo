@@ -50,31 +50,33 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
 
-    <build_depend>roscpp</build_depend>
-    <build_depend>rospy</build_depend>
-    <build_depend>std_msgs</build_depend>
-    <build_depend>std_srvs</build_depend>
-    <build_depend>sensor_msgs</build_depend>
-    <build_depend>nav_msgs</build_depend>
-    <build_depend>message_filters</build_depend>
-    <build_depend>tf</build_depend>
-    <build_depend>cv_bridge</build_depend>
-    <build_depend>nodelet</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>nodelet</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
 
-    <exec_depend>roscpp</exec_depend>
-    <exec_depend>rospy</exec_depend>
-    <exec_depend>std_msgs</exec_depend>
-    <exec_depend>std_srvs</exec_depend>
-    <exec_depend>sensor_msgs</exec_depend>
-    <exec_depend>nav_msgs</exec_depend>
-    <exec_depend>message_filters</exec_depend>
-    <exec_depend>tf</exec_depend>
-    <exec_depend>cv_bridge</exec_depend>
-    <exec_depend>nodelet</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>message_filters</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>nodelet</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>dynamic_reconfigure</exec_depend>
 
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- Other tools can request additional information be placed here -->
-
+    <gazebo_ros gazebo_model_path="${prefix}/models"/>
+    <gazebo_ros gazebo_media_path="${prefix}/models"/>
   </export>
 </package>
