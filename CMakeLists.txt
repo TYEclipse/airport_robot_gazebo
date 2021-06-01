@@ -160,6 +160,7 @@ catkin_install_python(
   scripts/cmdvel2gazebo_tracked.py
   scripts/imu_filter.py
   scripts/imu_preintrgration.py
+  scripts/scan_completer.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

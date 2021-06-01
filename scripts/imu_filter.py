@@ -68,17 +68,17 @@ class ImuFilter:
         data_output = Imu()
         data_output.orientation.w = self.ori_w.predic(data.orientation.w,
                                                       dt.to_sec())
-        data_output.orientation.x = self.ori_x.predic(data.orientation.x,
+        data_output.orientation.x = self.ori_x.predic(data.orientation.x if False else 0.0,
                                                       dt.to_sec())
-        data_output.orientation.y = self.ori_y.predic(data.orientation.y,
+        data_output.orientation.y = self.ori_y.predic(data.orientation.y if False else 0.0,
                                                       dt.to_sec())
         data_output.orientation.z = self.ori_z.predic(data.orientation.z,
                                                       dt.to_sec())
 
         data_output.angular_velocity.x = self.av_x.predic(
-            data.angular_velocity.x, dt.to_sec())
+            data.angular_velocity.x if False else 0.0, dt.to_sec())
         data_output.angular_velocity.y = self.av_y.predic(
-            data.angular_velocity.y, dt.to_sec())
+            data.angular_velocity.y if False else 0.0, dt.to_sec())
         data_output.angular_velocity.z = self.av_z.predic(
             data.angular_velocity.z, dt.to_sec())
 
@@ -87,7 +87,7 @@ class ImuFilter:
         data_output.linear_acceleration.y = self.la_y.predic(
             data.linear_acceleration.y, dt.to_sec())
         data_output.linear_acceleration.z = self.la_z.predic(
-            data.linear_acceleration.z, dt.to_sec())
+            data.linear_acceleration.z if False else 0.0, dt.to_sec())
 
         data_output.header = data.header
 
