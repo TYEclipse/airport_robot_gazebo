@@ -18,7 +18,7 @@ class ImuPreintegration:
     def __init__(self):
         rospy.init_node('imu_filter', anonymous=True)
 
-        rospy.Subscriber('/imu', Imu, self.imuCallback, queue_size=1)
+        rospy.Subscriber('/imu_raw', Imu, self.imuCallback, queue_size=1)
 
         self.pub_imuOdom = rospy.Publisher('/imu_odom', Odometry, queue_size=1)
 
@@ -54,7 +54,7 @@ class ImuPreintegration:
             data.linear_acceleration.x, data.linear_acceleration.y,
             data.linear_acceleration.z
         ])
-        g = np.array([0.0, 0.0, 9.8])
+        g = np.array([0.0, 0.0, 0.0])
 
         accelX = acceleration[0]
         accelY = acceleration[1]
