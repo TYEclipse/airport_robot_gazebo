@@ -5,12 +5,14 @@
 1. Ubuntu 18.04
 2. Ros Melodic
 3. Gazebo 9.0
+4. [Cartogpher](https://google-cartographer-ros.readthedocs.io/en/latest/compilation.html#building-installation)
 
 ## 依赖包
 
 `sudo apt update` \
 `sudo apt install ros-melodic-ros-controllers` \
-`sudo apt install ros-melodic-velodyne-simulator`
+`sudo apt install ros-melodic-velodyne-simulator` \
+`sudo apt install ros-melodic-key-teleop` 
 
 ## 运行指令
 
